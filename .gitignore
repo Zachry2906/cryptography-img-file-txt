@@ -1,2 +1,4 @@
 stKripto
 __pycache__
+.streamlit/
+tempCodeRunnerFile.py

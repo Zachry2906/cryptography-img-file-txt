@@ -1,7 +1,7 @@
 import streamlit as st
 from io import BytesIO
 from PIL import Image
-from utliss import encrypt_image_xor
+from process.utliss import encrypt_image_xor
 
 def encyImage(key, is_enc, file_data,upload_image) :
     if st.button("🔓 Enkripsi Gambar"):

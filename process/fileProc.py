@@ -1,5 +1,5 @@
 import streamlit as st
-from utliss import generate_key, encrypt_file, decrypt_file, create_zip_with_key_and_file
+from process.utliss import generate_key, encrypt_file, decrypt_file, create_zip_with_key_and_file
 
 def encyFile() :
     uploaded_file = st.file_uploader("Pilih file untuk dienkripsi", type=None, key="enc_file")
