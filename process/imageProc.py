@@ -37,10 +37,14 @@ def decyImage(key, file_data,upload_image) :
                     # Konversi kembali ke BytesIO untuk ditampilkan
                     img_byte_arr = BytesIO()
                     img.save(img_byte_arr, format=img.format if img.format else 'PNG')
+                    # img.save menyimpan gambar ke dalam BytesIO
+                    # format=img.format untuk menyimpan format gambar yang sama dengan format asli
                     img_byte_arr = img_byte_arr.getvalue()
+                    # img_btte_arr berisi data gambar yang sudah di dekripsi bertipe data bytes
                     
                     # Tampilkan gambar hasil dekripsi
                     st.image(img_byte_arr, caption="Hasil Dekripsi", use_column_width=True)
+                    # st.image mereima parameter data gambar yang akan ditampilkan
                     
                     # Tombol download
                     st.download_button(

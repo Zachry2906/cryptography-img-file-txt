@@ -18,13 +18,16 @@ def encyFile() :
                     key,
                     uploaded_file.name
                 )
+                # argumen create_zip_with_key_and_file adalah data file terenkripsi, key, dan nama file
                 
                 # Download ZIP
                 st.download_button(
                     label="📦 Download File Enkripsi & Key",
                     data=zip_data,
                     file_name=f"encrypted_{uploaded_file.name}.zip",
+                    # f didepan nama file untuk menggabungkan string
                     mime="application/zip"
+                    # mime adalah tipe file yang akan di download
                 )
                 
                 st.success("✅ File berhasil dienkripsi!")
@@ -44,7 +47,9 @@ def decyFile() :
         if st.button("🔓 Dekripsi File"):
             try:
                 key = key_file.read()
+                # Baca file terenkripsi
                 encrypted_data = encrypted_file.getvalue()
+                # getvalue() untuk mengambil data file
                 decrypted_data = decrypt_file(encrypted_data, key)
                 
                 file_name = encrypted_file.name

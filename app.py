@@ -162,6 +162,7 @@ def main():
                     if verify_credentials:
                         st.session_state.logged_in = True
                         st.session_state.username = username
+                        st.session_state.role = verify_credentials[3]
                         st.success("Login berhasil!")
                         st.rerun()
                     else:
@@ -169,11 +170,12 @@ def main():
     else:
         # Tampilkan sidebar dengan informasi user dan tombol logout
         with st.sidebar:
-            st.write(f"👤 User: {st.session_state.username}")
+            # st.write(f"👤 User: {st.session_state.username}")
             if st.button("Logout"):
                 st.session_state.logged_in = False
                 st.session_state.username = None
                 st.rerun()
+                # rerun untuk menghapus session state
         
         # Tampilkan aplikasi utama
         main_app()

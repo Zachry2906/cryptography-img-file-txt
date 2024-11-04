@@ -22,10 +22,15 @@ def init_db():
     if not c.fetchone():
         # Tambahkan admin default
         admin_password = hashlib.sha256('admin123'.encode()).hexdigest()
+        # hashlib adalah modul yang menyediakan fungsi hash yang aman dan cepat
+        # sha256() adalah fungsi yang digunakan untuk membuat objek hash SHA-256
+        # encode() adalah metode yang digunakan untuk mengonversi string menjadi byte
+        # hexdigest() adalah metode yang digunakan untuk mengembalikan representasi string dari data yang di-hash
         c.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
                  ('admin', admin_password, 'admin'))
     
     conn.commit()
+    # commit() adalah metode yang digunakan untuk menyimpan perubahan yang dilakukan ke database
     conn.close()
 
 # Fungsi untuk hash password
@@ -36,9 +41,13 @@ def hash_password(password):
 def verify_login(username, password):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT password, role FROM users WHERE username=?", (username,))
+    # cursor() adalah metode yang digunakan untuk membuat objek cursor yang digunakan untuk mengeksekusi perintah SQL
+    c.execute("SELECT password, role FROM users WHERE role='admin' AND username=?", (username,))
+    # execute() adalah metode yang digunakan untuk mengeksekusi perintah SQL
     result = c.fetchone()
+    # fetchone() adalah metode yang digunakan untuk mengambil satu baris hasil dari perintah SQL yang dieksekusi
     conn.close()
+    # close() adalah metode yang digunakan untuk menutup koneksi ke database
     
     if result and result[0] == hash_password(password):
         return True, result[1]
@@ -62,6 +71,7 @@ def add_user(username, password, role):
 def get_all_users():
     conn = sqlite3.connect('users.db')
     users = pd.read_sql_query("SELECT * FROM users", conn)
+    # read_sql_query() adalah metode yang digunakan untuk membaca data dari database menggunakan query SQL
     conn.close()
     return users
 
@@ -70,15 +80,6 @@ def delete_user(user_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     c.execute("DELETE FROM users WHERE id=? AND username!='admin'", (user_id,))
-    conn.commit()
-    conn.close()
-
-# Fungsi untuk mengubah password
-def change_password(username, new_password):
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    hashed_password = hash_password(new_password)
-    c.execute("UPDATE users SET password=? WHERE username=?", (hashed_password, username))
     conn.commit()
     conn.close()
 
@@ -92,6 +93,7 @@ def admin_panel():
     with tab1:
         st.subheader("Daftar User")
         users_df = get_all_users()
+        # users_df adalah variabel yang berisi data user yang diambil dari database
         st.dataframe(users_df)
         
         # Hapus user
@@ -120,26 +122,6 @@ def admin_panel():
                         st.error("Username sudah digunakan!")
                 else:
                     st.error("Username dan password harus diisi!")
-
-# Fungsi untuk mengubah password user
-def change_password_form():
-    st.subheader("🔑 Ubah Password")
-    with st.form("change_password_form"):
-        current_password = st.text_input("Password Saat Ini", type="password")
-        new_password = st.text_input("Password Baru", type="password")
-        confirm_password = st.text_input("Konfirmasi Password Baru", type="password")
-        
-        if st.form_submit_button("Ubah Password"):
-            if verify_login(st.session_state.username, current_password)[0]:
-                if new_password == confirm_password:
-                    change_password(st.session_state.username, new_password)
-                    st.success("Password berhasil diubah!")
-                    st.session_state.logged_in = False
-                    st.rerun()
-                else:
-                    st.error("Password baru tidak cocok!")
-            else:
-                st.error("Password saat ini salah!")
 
 def main():
     # Inisialisasi database
@@ -178,6 +160,7 @@ def main():
                 
                 if submit:
                     login_successful, role = verify_login(username, password)
+                    # verify_login mengembalikan tuple (login_successful, role)
                     if login_successful:
                         st.session_state.logged_in = True
                         st.session_state.username = username
@@ -189,14 +172,8 @@ def main():
     else:
         # Sidebar
         with st.sidebar:
-            st.write(f"👤 **{st.session_state.username}**")
-            st.write(f"🎭 Role: {st.session_state.role}")
-            
-            if st.button("📱 Menu Utama"):
-                st.session_state.current_page = 'main'
-            
-            if st.button("🔑 Ubah Password"):
-                st.session_state.current_page = 'change_password'
+            # st.write(f"👤 **{st.session_state.username}**")
+            # st.write(f"🎭 Role: {st.session_state.role}")
             
             if st.session_state.role == 'admin':
                 if st.button("👥 Panel Admin"):
@@ -208,15 +185,17 @@ def main():
         
         # Tampilkan halaman yang sesuai
         if not hasattr(st.session_state, 'current_page'):
+            # Jika current_page belum diinisialisasi, set ke 'main'
+            # hasattr() adalah fungsi yang digunakan untuk memeriksa apakah objek memiliki atribut tertentu atau tidak
             st.session_state.current_page = 'main'
-        
         if st.session_state.current_page == 'main':
-            st.title("🏠 Halaman Utama")
-            st.write(f"Selamat datang, {st.session_state.username}!")
+            if st.session_state.role == 'admin':
+                st.title("🏠 Halaman Utama")
+                st.write(f"Selamat datang, {st.session_state.username}!")
+            elif st.session_state.role == 'user':
+                st.title("Maaf Anda tidak memiliki akses ke halaman ini!")
         elif st.session_state.current_page == 'admin' and st.session_state.role == 'admin':
             admin_panel()
-        elif st.session_state.current_page == 'change_password':
-            change_password_form()
 
 if __name__ == "__main__":
     main()
