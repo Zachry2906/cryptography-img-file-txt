@@ -54,21 +54,9 @@ def main_app():
 
     # ============= TAB 3: TEXT =============
     with tab3:
-        st.header("Enkripsi Text")
-        
-        encryption_method = st.selectbox(
-            "Pilih Metode Enkripsi",
-            ["Caesar", "Vigenere", "RC4", "Block ECB", "Super Encryption"]
-        )
-        
+        st.header("Super Encryption Text dengan Caesar, Vigenere, RC4, dan AES-ECB")
         input_text = st.text_area("Masukkan Text", height=100)
-        
-        if encryption_method == "Caesar":
-            key = st.number_input("Masukkan Key (angka)", min_value=1, max_value=25, value=3)
-        elif encryption_method in ["Vigenere", "RC4", "Block ECB"]:
-            key = st.text_input("Masukkan Key", type="password")
-        else:  # Super Encryption
-            key = st.number_input("Masukkan Key (angka)", min_value=1, max_value=25, value=3)
+        key = st.number_input("Masukkan Key (angka)", min_value=1, max_value=25, value=3)
 
         col1, col2 = st.columns(2)
         
@@ -76,18 +64,7 @@ def main_app():
             with col1:
                 if st.button("🔒 Enkripsi"):
                     if input_text:
-                        result = None
-                        if encryption_method == "Caesar":
-                            result = te.caesar_encrypt(input_text, key)
-                        elif encryption_method == "Vigenere":
-                            result = te.vigenere_encrypt(input_text, key)
-                        elif encryption_method == "RC4":
-                            result = te.rc4_encrypt(input_text, key)
-                        elif encryption_method == "Block ECB":
-                            result = te.block_ecb_encrypt(input_text, key)
-                        else:  # Super Encryption
-                            result = te.super_encrypt(input_text, key)
-                        
+                        result = te.super_encrypt(input_text, key)
                         st.text_area("Hasil Enkripsi", result, height=100)
                     else:
                         st.error("Masukkan text yang akan dienkripsi")
@@ -95,18 +72,7 @@ def main_app():
             with col2:
                 if st.button("🔓 Dekripsi"):
                     if input_text:
-                        result = None
-                        if encryption_method == "Caesar":
-                            result = te.caesar_decrypt(input_text, key)
-                        elif encryption_method == "Vigenere":
-                            result = te.vigenere_decrypt(input_text, key)
-                        elif encryption_method == "RC4":
-                            result = te.rc4_decrypt(input_text, key)
-                        elif encryption_method == "Block ECB":
-                            result = te.block_ecb_decrypt(input_text, key)
-                        else:  # Super Encryption
-                            result = te.super_decrypt(input_text, key)
-                        
+                        result = te.super_decrypt(input_text, key)
                         st.text_area("Hasil Dekripsi", result, height=100)
                     else:
                         st.error("Masukkan text yang akan didekripsi")
