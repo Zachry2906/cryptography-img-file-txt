@@ -5,6 +5,7 @@ from process.imageProc import encyImage, decyImage
 from process.fileProc import encyFile, decyFile
 import process.textProc as te
 import sqlite3
+import process.textProc as te
 
 conn = sqlite3.connect('users.db')
 # Fungsi untuk mengenkripsi password
@@ -56,7 +57,10 @@ def main_app():
     with tab3:
         st.header("Super Encryption Text dengan Caesar, Vigenere, RC4, dan AES-ECB")
         input_text = st.text_area("Masukkan Text", height=100)
-        key = st.number_input("Masukkan Key (angka)", min_value=1, max_value=25, value=3)
+        key = st.number_input("Masukkan Key caesar", min_value=1, max_value=25, value=3)
+        te.VIGENERE_KEY = st.text_input("Masukkan Key Vigenere", type="password")
+        te.RC4_KEY = st.text_input("Masukkan Key RC4", type="password")
+        te.AES_KEY = st.text_input("Masukkan Key AES", type="password")
 
         col1, col2 = st.columns(2)
         
