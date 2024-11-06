@@ -1,16 +1,106 @@
 import streamlit as st
 import hashlib
 from process.utliss import is_encrypted
-from process.imageProc import encyImage, decyImage
+from process.imageProc import encyImage, decyImage, encyStegano, decyStegano
 from process.fileProc import encyFile, decyFile
 import process.textProc as te
 import sqlite3
 import process.textProc as te
+from cryptography.fernet import Fernet
+import base64
+import numpy as np
+from io import BytesIO 
+from PIL import Image
 
 conn = sqlite3.connect('users.db')
 # Fungsi untuk mengenkripsi password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+# Function to encode the message into the image
+def encode_message(message, image):
+    encoded_image = image.copy()
+
+    # Encoding the message into the image
+    encoded_image.putdata(encode_data(image, message))
+
+    # Save the encoded image
+    encoded_image_path = "encoded.png"
+    encoded_image.save(encoded_image_path)
+
+    st.success("Image encoded successfully.")
+    show_encoded_image(encoded_image_path)
+
+
+# Function to decode the hidden message from the image
+def decode_message(image, key):
+    # Decode the hidden message from the image
+    decoded_message = decode_data(image)
+    decripted_message = te.caesar_decrypt(decoded_message, key)
+    # show_decoded_image(image)  # Call the function to display the decoded image
+    return decripted_message
+
+
+# Function to display the decoded image in the UI
+# def show_decoded_image(decoded_image):
+#     st.image(decoded_image, caption="Decoded Image", use_column_width=True)
+
+
+# Function to encode the data (message) into the image
+def encode_data(image, data):
+    data = data + "$"  # Adding a delimiter to identify the end of the message
+    data_bin = ''.join(format(ord(char), '08b') for char in data)
+
+    pixels = list(image.getdata())
+    encoded_pixels = []
+
+    index = 0
+    for pixel in pixels:
+        if index < len(data_bin):
+            red_pixel = pixel[0]
+            new_pixel = (red_pixel & 254) | int(data_bin[index])
+            encoded_pixels.append((new_pixel, pixel[1], pixel[2]))
+            index += 1
+        else:
+            encoded_pixels.append(pixel)
+
+    return encoded_pixels
+
+
+# Function to decode the data (message) from the image
+def decode_data(image):
+    pixels = list(image.getdata())
+
+    data_bin = ""
+    for pixel in pixels:
+        # Extracting the least significant bit of the red channel
+        data_bin += bin(pixel[0])[-1]
+
+    data = ""
+    for i in range(0, len(data_bin), 8):
+        byte = data_bin[i:i + 8]
+        data += chr(int(byte, 2))
+        if data[-1] == "$":
+            break
+
+    return data[:-1]  # Removing the delimiter
+
+
+# Function to display the encoded image in the UI and add a download button
+def show_encoded_image(image_path):
+    encoded_image = Image.open(image_path)
+
+    st.image(encoded_image, caption="Encoded Image", use_column_width=True)
+
+    buffered = BytesIO()
+    encoded_image.save(buffered, format="PNG")
+
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+
+    href = ('<a href="data:file/png;base64,' + img_str + '" '
+            'download="' + image_path + '">Download Encoded Image</a>')
+
+    st.markdown(href, unsafe_allow_html=True)
 
 
 # Fungsi untuk menampilkan aplikasi utama
@@ -18,12 +108,12 @@ def main_app():
     # ============= KONFIGURASI APLIKASI =============
     st.title("🔒 Aplikasi Enkripsi")
     st.markdown("Enkripsi file dan gambar Anda dengan aman menggunakan berbagai metode enkripsi")
-    tab1, tab2, tab3 = st.tabs(["📸 Enkripsi Gambar", "📁 Enkripsi File", "📝 Enkripsi Text"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📸 Enkripsi Gambar", "📸 Steganografi Gambar", "📁 Enkripsi File", "📝 Enkripsi Text"])
 
     # ============= TAB 1: ENKRIPSI GAMBAR =============
     with tab1:
-        st.header("Enkripsi Gambar dengan XOR")
-        upload_image = st.file_uploader("Unggah gambar", type=["jpg", "png", "jpeg", "bmp"])
+        st.header("Enkripsi Gambar dengan XOR (ini salah jir, ga disuruh)")
+        upload_image = st.file_uploader("Unggah gambar", type=["jpg", "png", "jpeg", "bmp"], key='image')
 
         if upload_image is not None:
             file_data = upload_image.read()
@@ -43,8 +133,42 @@ def main_app():
             with col2:
                 decyImage(key, file_data, upload_image)
 
-    # ============= TAB 2: ENKRIPSI FILE =============
+    # ============= TAB 2: STEGANOGRAFI GAMBAR =============
     with tab2:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.header("Encode")
+            pesan = st.text_input("Masukkan Pesan Rahasia")
+            key = st.text_input("Masukkan Kunci", type="password", key='encode')
+            message = te.caesar_encrypt(pesan, key)
+            # password = col1.text_input("Enter Password", type="password")
+            image_file = st.file_uploader("Pilih Gambar", type=["png", "jpg", "jpeg"])
+        with col2:
+            st.header("Encoded Image")
+            if message and image_file:
+                image = Image.open(image_file)
+                encode_message(message, image)
+
+        st.markdown("---")
+
+        col3, col4 = st.columns(2)
+        with col3:
+            st.header("Decode")
+            keyDecy = st.text_input("Masukkan Kunci", type="password", key='decode')
+        with col4:
+            st.header("Pesan Rahasia")
+
+        # decode_password = col3.text_input("Enter Password for Decoding", type="password")
+        decode_image_file = col3.file_uploader(
+            "Pilih Gambar yang Ingin diketahui pesannya", type=["png", "jpg", "jpeg"]
+        )
+
+        if decode_image_file:
+            decode_image = Image.open(decode_image_file)
+            col4.write("Pesan Rahasia: " + decode_message(decode_image, keyDecy))
+
+    # ============= TAB 3: ENKRIPSI FILE =============
+    with tab3:
         st.header("Enkripsi File dengan Fernet")
         mode = st.radio("Pilih Mode:", ("🔒 Enkripsi", "🔓 Dekripsi"))
         
@@ -54,7 +178,7 @@ def main_app():
             decyFile()
 
     # ============= TAB 3: TEXT =============
-    with tab3:
+    with tab4:
         st.header("Super Encryption Text dengan Caesar, Vigenere, RC4, dan AES-ECB")
         input_text = st.text_area("Masukkan Text", height=100)
         key = st.number_input("Masukkan Key caesar", min_value=1, max_value=25, value=3)

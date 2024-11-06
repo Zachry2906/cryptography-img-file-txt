@@ -10,6 +10,10 @@ RC4_KEY = "KanangHerdaya"
 AES_KEY = "Josuawarwukakaka"
 
 def caesar_encrypt(plain, key):
+    try:
+        key = int(key)
+    except ValueError:
+            return "Error: Key harus berupa angka"
     cipher = ""
     for c in plain:
         if c.isalpha():
@@ -20,6 +24,11 @@ def caesar_encrypt(plain, key):
     return cipher
 
 def caesar_decrypt(cipher: str, key: int) -> str:
+    try:
+        key = int(key)
+    except ValueError:
+            return "Error: Key harus berupa angka"
+    
     return caesar_encrypt(cipher, 26 - (key % 26))
 
 def vigenere_encrypt(plain: str, key: str) -> str:
