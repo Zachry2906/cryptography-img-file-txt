@@ -16,6 +16,15 @@ def init_db():
          role TEXT NOT NULL,
          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
     ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS text
+        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+         enkripsi TEXT NOT NULL,
+         key TEXT NOT NULL,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         user_id INTEGER NOT NULL,
+         FOREIGN KEY(user_id) REFERENCES users(id))
+    ''')
     
     # Cek apakah admin default sudah ada
     c.execute("SELECT * FROM users WHERE username='admin'")
@@ -75,6 +84,11 @@ def get_all_users():
     conn.close()
     return users
 
+def get_all_text():
+    conn = sqlite3.connect('users.db')
+    users = pd.read_sql_query("SELECT * FROM text", conn)
+    return users
+
 # Fungsi untuk menghapus user
 def delete_user(user_id):
     conn = sqlite3.connect('users.db')
@@ -94,7 +108,9 @@ def admin_panel():
         st.subheader("Daftar User")
         users_df = get_all_users()
         # users_df adalah variabel yang berisi data user yang diambil dari database
+        text_df = get_all_text()
         st.dataframe(users_df)
+        st.dataframe(text_df)
         
         # Hapus user
         if len(users_df) > 0:

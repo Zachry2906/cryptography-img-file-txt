@@ -5,10 +5,8 @@ from process.imageProc import encyImage, decyImage, encyStegano, decyStegano
 from process.fileProc import encyFile, decyFile
 import process.textProc as te
 import sqlite3
-import process.textProc as te
-from cryptography.fernet import Fernet
+import pandas as pd
 import base64
-import numpy as np
 from io import BytesIO 
 from PIL import Image
 
@@ -108,7 +106,7 @@ def main_app():
     # ============= KONFIGURASI APLIKASI =============
     st.title("🔒 Aplikasi Enkripsi")
     st.markdown("Enkripsi file dan gambar Anda dengan aman menggunakan berbagai metode enkripsi")
-    tab1, tab2, tab3, tab4 = st.tabs(["📸 Enkripsi Gambar", "📸 Steganografi Gambar", "📁 Enkripsi File", "📝 Enkripsi Text"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📸 Enkripsi Gambar", "📸 Steganografi Gambar", "📁 Enkripsi File", "📝 Enkripsi Text", "📈 Data Anda"])
 
     # ============= TAB 1: ENKRIPSI GAMBAR =============
     with tab1:
@@ -194,6 +192,17 @@ def main_app():
                     if input_text:
                         result = te.super_encrypt(input_text, key)
                         st.text_area("Hasil Enkripsi", result, height=100)
+                        if result:
+                            conn = sqlite3.connect('users.db')
+                            c = conn.cursor()
+                            if 'id' in st.session_state:
+                                c.execute("INSERT INTO text (user_id, enkripsi, key) VALUES (?, ?, ?)", (st.session_state.id, result, str(key)+"|"+te.VIGENERE_KEY+"|"+te.RC4_KEY+"|"+te.AES_KEY))
+                            else:
+                                st.error("User ID not found in session state.")
+                            conn.commit()
+                            conn.close()
+                            st.success("Data berhasil disimpan.")
+
                     else:
                         st.error("Masukkan text yang akan dienkripsi")
 
@@ -216,9 +225,28 @@ def main_app():
             - **Block ECB**: Block cipher menggunakan AES-ECB
             - **Super Encryption**: Kombinasi Caesar + Vigenere + RC4 + Block ECB
             """)
+    
+    with tab5:
+        st.header("Data Anda")
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('''
+        CREATE TABLE IF NOT EXISTS text
+        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+         enkripsi TEXT NOT NULL,
+         key TEXT NOT NULL,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         user_id INTEGER NOT NULL,
+         FOREIGN KEY(user_id) REFERENCES users(id))
+    ''')
+        data = pd.read_sql_query("SELECT * FROM text WHERE user_id = ?", conn, params=(st.session_state.id,))
+        if not data.empty:
+            st.dataframe(data)
+        else:
+            st.info("Belum ada data yang disimpan.")
 
 def main():
-    st.set_page_config(page_title="Enkripsi App", page_icon="🔒")
+    st.set_page_config(page_title="Tugas Akhir Kriptografi", page_icon="🔒")
     
     # Tambahkan CSS kustom
     st.markdown("""
@@ -256,6 +284,7 @@ def main():
                     if verify_credentials:
                         st.session_state.logged_in = True
                         st.session_state.username = username
+                        st.session_state.id = verify_credentials[0]
                         st.session_state.role = verify_credentials[3]
                         st.success("Login berhasil!")
                         st.rerun()
