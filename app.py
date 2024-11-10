@@ -183,7 +183,9 @@ def main_app():
         te.VIGENERE_KEY = st.text_input("Masukkan Key Vigenere", type="password")
         te.RC4_KEY = st.text_input("Masukkan Key RC4", type="password")
         te.AES_KEY = st.text_input("Masukkan Key AES", type="password")
-
+        if len(te.AES_KEY) != 16 or len(te.AES_KEY) != 32 or len(te.AES_KEY) != 64 :
+            st.error("kunci AES harus memiliki panjang 16, 32, atau 64")
+            
         col1, col2 = st.columns(2)
         
         try:
