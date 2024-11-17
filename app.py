@@ -104,14 +104,20 @@ def show_encoded_image(image_path):
 # Fungsi untuk menampilkan aplikasi utama
 def main_app():
     # ============= KONFIGURASI APLIKASI =============
-    st.title("🔒 Aplikasi Enkripsi")
-    st.markdown("Enkripsi file dan gambar Anda dengan aman menggunakan berbagai metode enkripsi")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📸 Enkripsi Gambar", "📸 Steganografi Gambar", "📁 Enkripsi File", "📝 Enkripsi Text", "📈 Data Anda"])
+    st.title("🏥 Sistem Keamanan Data Medis")
+    st.markdown("Enkripsi data medis pasien dengan aman menggunakan berbagai metode enkripsi")
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📸 Enkripsi Citra Medis", 
+    "📸 Steganografi Dokumen", 
+    "📁 Enkripsi Berkas Pasien", 
+    "📝 Enkripsi Catatan Medis",
+    "📈 Riwayat Enkripsi"
+])
 
     # ============= TAB 1: ENKRIPSI GAMBAR =============
     with tab1:
-        st.header("Enkripsi Gambar dengan XOR (ini salah jir, ga disuruh)")
-        upload_image = st.file_uploader("Unggah gambar", type=["jpg", "png", "jpeg", "bmp"], key='image')
+        st.header("Enkripsi Citra Medis dengan XOR")
+        upload_image = st.file_uploader("Unggah hasil pemindaian medis (X-Ray, MRI, USG)", type=["jpg", "png", "jpeg", "bmp"])
 
         if upload_image is not None:
             file_data = upload_image.read()
@@ -135,14 +141,14 @@ def main_app():
     with tab2:
         col1, col2 = st.columns(2)
         with col1:
-            st.header("Encode")
-            pesan = st.text_input("Masukkan Pesan Rahasia")
+            st.header("Penyembunyian Data Pasien dalam Citra Medis")
+            pesan = st.text_input("Masukkan Data Rahasia Pasien")
             key = st.text_input("Masukkan Kunci", type="password", key='encode')
             message = te.caesar_encrypt(pesan, key)
             # password = col1.text_input("Enter Password", type="password")
             image_file = st.file_uploader("Pilih Gambar", type=["png", "jpg", "jpeg"])
         with col2:
-            st.header("Encoded Image")
+            st.header("Citra Medis dengan Data Rahasia")
             if message and image_file:
                 image = Image.open(image_file)
                 encode_message(message, image)
@@ -151,10 +157,10 @@ def main_app():
 
         col3, col4 = st.columns(2)
         with col3:
-            st.header("Decode")
+            st.header("Ekstrak Data Rahasia dari Citra Medis")
             keyDecy = st.text_input("Masukkan Kunci", type="password", key='decode')
         with col4:
-            st.header("Pesan Rahasia")
+            st.header("Data Rahasia Pasien")
 
         # decode_password = col3.text_input("Enter Password for Decoding", type="password")
         decode_image_file = col3.file_uploader(
@@ -167,7 +173,7 @@ def main_app():
 
     # ============= TAB 3: ENKRIPSI FILE =============
     with tab3:
-        st.header("Enkripsi File dengan Fernet")
+        st.header("Enkripsi Berkas Rekam Medis dengan Fernet")
         mode = st.radio("Pilih Mode:", ("🔒 Enkripsi", "🔓 Dekripsi"))
         
         if mode == "🔒 Enkripsi":
@@ -177,8 +183,8 @@ def main_app():
 
     # ============= TAB 3: TEXT =============
     with tab4:
-        st.header("Super Encryption Text dengan Caesar, Vigenere, RC4, dan AES-ECB")
-        input_text = st.text_area("Masukkan Text", height=100)
+        st.header("Enkripsi Catatan & Diagnosis Medis")
+        input_text = st.text_area("Masukkan Catatan Medis", height=100)
         key = st.number_input("Masukkan Key caesar", min_value=1, max_value=25, value=3)
         te.VIGENERE_KEY = st.text_input("Masukkan Key Vigenere", type="password")
         te.RC4_KEY = st.text_input("Masukkan Key RC4", type="password")
@@ -229,7 +235,7 @@ def main_app():
             """)
     
     with tab5:
-        st.header("Data Anda")
+        st.header("Riwayat Enkripsi Data Medis")
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
         c.execute('''
@@ -248,22 +254,44 @@ def main_app():
             st.info("Belum ada data yang disimpan.")
 
 def main():
-    st.set_page_config(page_title="Tugas Akhir Kriptografi", page_icon="🔒")
+    st.set_page_config(
+        page_title="Sistem Keamanan Data Medis",
+        page_icon="🏥",
+        layout="wide"
+    )
+
     
-    # Tambahkan CSS kustom
     st.markdown("""
         <style>
+        /* Import custom theme CSS */
+        @import url('medical-theme-css.css');
+        
+        /* Additional custom styles */
+        .main {
+            background-color: #B8CBEA;
+            padding: 2rem;
+        }
         .stButton>button {
             width: 100%;
+            background-color: #3B365F !important;
+            color: white !important;
         }
         .stForm {
-            background-color: #f0f2f6;
+            background-color: #474955;
             padding: 20px;
             border-radius: 10px;
         }
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .viewerBadge_container__1QSob {display: none;}
+        
+        /* Custom header styles */
+        h1 {
+            color: #3B365F !important;
+            font-weight: bold !important;
+            padding: 1rem 0;
+        }
+        
         </style>
     """, unsafe_allow_html=True)
     
@@ -275,7 +303,7 @@ def main():
     if not st.session_state.logged_in:
         col1, col2, col3 = st.columns([1,2,1])
         with col2:
-            st.title("🔒 Login")
+            st.title("🏥 Login Sistem Keamanan Data Medis")
             with st.form("login_form"):
                 username = st.text_input("Username")
                 password = st.text_input("Password", type="password")

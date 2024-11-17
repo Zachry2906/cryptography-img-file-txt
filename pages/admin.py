@@ -1,7 +1,6 @@
 import streamlit as st
 import sqlite3
 import hashlib
-from datetime import datetime
 import pandas as pd
 
 # Fungsi untuk inisialisasi database
@@ -153,17 +152,36 @@ def main():
     # CSS kustom
     st.markdown("""
         <style>
+        /* Import custom theme CSS */
+        @import url('medical-theme-css.css');
+        
+        /* Additional custom styles */
+        .main {
+            background-color: #B8CBEA;
+            padding: 2rem;
+        }
         .stButton>button {
             width: 100%;
+            background-color: #3B365F !important;
+            color: white !important;
         }
         .stForm {
-            background-color: #f0f2f6;
+            background-color: #474955;
             padding: 20px;
             border-radius: 10px;
         }
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .viewerBadge_container__1QSob {display: none;}
+        
+        /* Custom header styles */
+        h1 {
+            color: #3B365F !important;
+            font-weight: bold !important;
+            padding: 1rem 0;
+        }
         </style>
     """, unsafe_allow_html=True)
-    
     # Proses login/logout
     if not st.session_state.logged_in:
         col1, col2, col3 = st.columns([1,2,1])
