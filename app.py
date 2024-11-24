@@ -1,7 +1,7 @@
 import streamlit as st
 import hashlib
 from process.utliss import is_encrypted
-from process.imageProc import encyImage, decyImage, encyStegano, decyStegano
+from process.imageProc import encyImage, decyImage
 from process.fileProc import encyFile, decyFile
 import process.textProc as te
 import sqlite3
